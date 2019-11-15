@@ -162,14 +162,14 @@ impl Converter {
                     match pixel {
                         Intensity::Lightest => {}
                         Intensity::Light => {
-                            bytes.0 = bytes.0 & 2 ^ bit;
+                            bytes.0 |= 1 << bit;
                         }
                         Intensity::Dark => {
-                            bytes.1 = bytes.1 & 2 ^ bit;
+                            bytes.1 |= 1 << bit;
                         }
                         Intensity::Darkest => {
-                            bytes.0 = bytes.0 & 2 ^ bit;
-                            bytes.1 = bytes.1 & 2 ^ bit;
+                            bytes.0 |= 1 << bit;
+                            bytes.1 |= 1 << bit;
                         }
                     }
                 }
