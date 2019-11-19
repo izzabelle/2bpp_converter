@@ -1,10 +1,10 @@
 use image::{DynamicImage, GenericImageView, Pixel};
-use std::error::Error;
+use std::io::{Error, ErrorKind};
 use std::path::PathBuf;
 use structopt::StructOpt;
 
 #[derive(StructOpt)]
-#[structopt(name = "png to 2bpp cli", about = "convert image files to .2bpp")]
+#[structopt(name = "2bpp_rs cli", about = "convert image files to .2bpp")]
 struct Opt {
     /// path to file
     #[structopt(parse(from_os_str))]
@@ -77,11 +77,17 @@ struct Converter {
 }
 
 impl Converter {
-    fn init(path: &PathBuf) -> Result<Self, Box<dyn Error>> {
+    fn init(path: &PathBuf) -> Result<Self, Box<dyn std::error::Error>> {
         let raw_dimensions = image::image_dimensions(path)?;
 
         if raw_dimensions.0 % 8 != 0 && raw_dimensions.1 % 8 != 0 {
-            panic!("dimensions incompatible");
+            return Err(Box::new(Error::new(
+                ErrorKind::InvalidData,
+                format!(
+                    "{} dimensions are not valid for conversion, both must be divisble by 8",
+                    &path.as_path().display()
+                ),
+            )));
         }
 
         let sprite_dimensions = (
@@ -100,7 +106,7 @@ impl Converter {
         })
     }
 
-    fn convert(&mut self, pallete: Option<Pallete>) {
+    fn convert(&mut self, pallete: Option<Pallete>) -> Result<(), Box<dyn std::error::Error>> {
         let pallete = match pallete {
             Some(pallete) => pallete,
             None => Default::default(),
@@ -131,7 +137,12 @@ impl Converter {
                             _ if pixel == light => Intensity::Light,
                             _ if pixel == dark => Intensity::Dark,
                             _ if pixel == darkest => Intensity::Darkest,
-                            _ => panic!("color not in pallete"),
+                            _ => {
+                                return Err(Box::new(Error::new(
+                                    ErrorKind::InvalidData,
+                                    "pixel in image was not in pallete",
+                                )));
+                            }
                         };
 
                         sprite.data[i][j] = intensity;
@@ -142,11 +153,15 @@ impl Converter {
             }
         }
         self.converted = true;
+        Ok(())
     }
 
-    fn output(&self) -> Vec<u8> {
+    fn output(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         if !self.converted {
-            panic!("image has not been converted!");
+            return Err(Box::new(Error::new(
+                ErrorKind::InvalidData,
+                "image has not been converted",
+            )));
         }
 
         let sprites = &self.pixel_data.sprites;
@@ -178,15 +193,15 @@ impl Converter {
             }
         }
 
-        out
+        Ok(out)
     }
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut opt = Opt::from_args();
     let mut conv = Converter::init(&opt.image_path)?;
-    conv.convert(None);
-    let out = conv.output();
+    conv.convert(None)?;
+    let out = conv.output()?;
     std::fs::write(
         match opt.output_path {
             Some(path) => path,
