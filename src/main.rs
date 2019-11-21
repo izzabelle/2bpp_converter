@@ -199,7 +199,7 @@ impl Converter {
     }
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main_error_wrapper() -> Result<(), Box<dyn std::error::Error>> {
     let mut opt = Opt::from_args();
     let mut conv = Converter::init(&opt.image_path)?;
     conv.convert(opt.pallete)?;
@@ -215,4 +215,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         out,
     )?;
     Ok(())
+}
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    match main_error_wrapper() {
+        Ok(_) => std::process::exit(0),
+        Err(err) => {
+            println!("c2bpp has encountered an error: {:?}", err);
+            std::process::exit(1)
+        }
+    }
 }
