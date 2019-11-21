@@ -1,4 +1,5 @@
 use image::{DynamicImage, GenericImageView, Pixel};
+use serde_derive::Deserialize;
 use std::io::{Error, ErrorKind};
 use std::path::PathBuf;
 use structopt::StructOpt;
@@ -14,7 +15,7 @@ struct Opt {
     #[structopt(short = "o", long = "output")]
     output_path: Option<PathBuf>,
 
-    /// palette.json defaults to Aseprites gameboy palette
+    /// palette.toml defaults to Aseprites gameboy palette
     #[structopt(short = "p", long = "pallete")]
     pallete: Option<PathBuf>,
 }
@@ -27,6 +28,7 @@ enum Intensity {
     Darkest,  // 0f380f
 }
 
+#[derive(Deserialize)]
 struct Pallete {
     lightest: [u8; 3],
     light: [u8; 3],
@@ -106,9 +108,9 @@ impl Converter {
         })
     }
 
-    fn convert(&mut self, pallete: Option<Pallete>) -> Result<(), Box<dyn std::error::Error>> {
-        let pallete = match pallete {
-            Some(pallete) => pallete,
+    fn convert(&mut self, pallete_path: Option<PathBuf>) -> Result<(), Box<dyn std::error::Error>> {
+        let pallete: Pallete = match pallete_path {
+            Some(pallete) => toml::from_str(&std::fs::read_to_string(pallete)?)?,
             None => Default::default(),
         };
 
@@ -200,7 +202,7 @@ impl Converter {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut opt = Opt::from_args();
     let mut conv = Converter::init(&opt.image_path)?;
-    conv.convert(None)?;
+    conv.convert(opt.pallete)?;
     let out = conv.output()?;
     std::fs::write(
         match opt.output_path {
@@ -212,6 +214,5 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         },
         out,
     )?;
-
     Ok(())
 }

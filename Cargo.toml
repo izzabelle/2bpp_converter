@@ -7,3 +7,6 @@ edition = "2018"
 [dependencies]
 image = "0.22.3"
 structopt = "0.3.4"
+serde = "1.0.102"
+toml = "0.5.5"
+serde_derive = "1.0.102"
