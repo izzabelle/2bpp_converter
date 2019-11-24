@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use structopt::StructOpt;
 
 #[derive(StructOpt)]
-#[structopt(name = "2bpp_rs cli", about = "convert image files to .2bpp")]
+#[structopt(name = "c2bpp cli", about = "convert image files to .2bpp")]
 struct Opt {
     /// path to file
     #[structopt(parse(from_os_str))]

@@ -1,5 +1,5 @@
 [package]
-name = "2bpp_converter"
+name = "c2bpp"
 version = "0.1.0"
 authors = ["Isabelle L. <me@izzabelle.dev>"]
 edition = "2018"
