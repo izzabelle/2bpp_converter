@@ -1,11 +1,13 @@
 [![Build Status](https://travis-ci.org/izzabelle/2bpp_converter.svg?branch=master)](https://travis-ci.org/izzabelle/2bpp_converter)
 
 # c2bpp
-c2bpp basic russt .2bpp image converter
+c2bpp basic rust .2bpp image converter
 
 ## Installation
 
-```tbd```
+```bash
+cargo install c2bpp
+```
 
 ## Usage
 
