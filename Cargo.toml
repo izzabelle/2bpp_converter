@@ -4,7 +4,7 @@ description = "basic image to .2bpp converter"
 repository = "https://github.com/izzabelle/2bpp_converter"
 readme = "README.md"
 license-file = "LICENSE"
-version = "0.1.0"
+version = "1.0.0"
 authors = ["Isabelle L. <me@izzabelle.dev>"]
 edition = "2018"
 
