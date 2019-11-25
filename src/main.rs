@@ -1,5 +1,5 @@
 use image::{DynamicImage, GenericImageView, Pixel};
-use serde_derive::Deserialize;
+use serde::Deserialize;
 use std::io::{Error, ErrorKind};
 use std::path::PathBuf;
 use structopt::StructOpt;
