@@ -1,4 +1,6 @@
 [![Build Status](https://travis-ci.org/izzabelle/2bpp_converter.svg?branch=master)](https://travis-ci.org/izzabelle/2bpp_converter)
+[![Crates.io](https://img.shields.io/crates/v/c2bpp.svg)](https://crates.io/crates/c2bpp)
+[![dependency status](https://deps.rs/repo/github/izzabelle/c2bpp/status.svg)](https://deps.rs/repo/github/izzabelle/c2bpp)
 
 # c2bpp
 c2bpp basic rust .2bpp image converter
