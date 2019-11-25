@@ -1,3 +1,5 @@
+[![Travis Build][trav-img]][trav-url] [![crates.io][crates-img]][crates-url]
+
 # c2bpp
 c2bpp basic russt .2bpp image converter
 
