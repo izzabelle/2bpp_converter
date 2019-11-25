@@ -75,7 +75,6 @@ struct Converter {
     raw_image: DynamicImage,
     sprite_dimensions: (usize, usize),
     pixel_data: PixelData,
-    converted: bool,
 }
 
 impl Converter {
@@ -92,20 +91,12 @@ impl Converter {
             )));
         }
 
-        let sprite_dimensions = (
-            (raw_dimensions.0 / 8) as usize,
-            (raw_dimensions.1 / 8) as usize,
-        );
+        let sprite_dimensions = ((raw_dimensions.0 / 8) as usize, (raw_dimensions.1 / 8) as usize);
 
         let pixel_data = PixelData::init();
         let raw_image = image::open(path)?;
 
-        Ok(Converter {
-            pixel_data,
-            raw_image,
-            sprite_dimensions,
-            converted: false,
-        })
+        Ok(Converter { pixel_data, raw_image, sprite_dimensions })
     }
 
     fn convert(&mut self, pallete_path: Option<PathBuf>) -> Result<(), Box<dyn std::error::Error>> {
@@ -113,13 +104,6 @@ impl Converter {
             Some(pallete) => toml::from_str(&std::fs::read_to_string(pallete)?)?,
             None => Default::default(),
         };
-
-        let (lightest, light, dark, darkest) = (
-            pallete.lightest,
-            pallete.light,
-            pallete.dark,
-            pallete.darkest,
-        );
 
         for x in 0..self.sprite_dimensions.0 {
             for y in 0..self.sprite_dimensions.1 {
@@ -135,10 +119,10 @@ impl Converter {
                         let pixel = [pixel[0] as u8, pixel[1] as u8, pixel[2] as u8];
 
                         let intensity = match pixel {
-                            _ if pixel == lightest => Intensity::Lightest,
-                            _ if pixel == light => Intensity::Light,
-                            _ if pixel == dark => Intensity::Dark,
-                            _ if pixel == darkest => Intensity::Darkest,
+                            _ if pixel == pallete.lightest => Intensity::Lightest,
+                            _ if pixel == pallete.light => Intensity::Light,
+                            _ if pixel == pallete.dark => Intensity::Dark,
+                            _ if pixel == pallete.darkest => Intensity::Darkest,
                             _ => {
                                 return Err(Box::new(Error::new(
                                     ErrorKind::InvalidData,
@@ -154,26 +138,19 @@ impl Converter {
                 self.pixel_data.sprites.push(sprite);
             }
         }
-        self.converted = true;
+
         Ok(())
     }
 
-    fn output(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-        if !self.converted {
-            return Err(Box::new(Error::new(
-                ErrorKind::InvalidData,
-                "image has not been converted",
-            )));
-        }
-
+    fn output(&self) -> Vec<u8> {
         let sprites = &self.pixel_data.sprites;
         let mut out: Vec<u8> = Vec::new();
 
-        for i in 0..sprites.len() {
+        for sprite in sprites {
             for j in 0..8 {
                 let mut bytes: (u8, u8) = (0, 0);
                 for k in 0..8 {
-                    let pixel = sprites[i].data[j][k];
+                    let pixel = sprite.data[j][k];
                     let bit = k as u8;
 
                     match pixel {
@@ -195,7 +172,7 @@ impl Converter {
             }
         }
 
-        Ok(out)
+        out
     }
 }
 
@@ -203,7 +180,7 @@ fn main_error_wrapper() -> Result<(), Box<dyn std::error::Error>> {
     let mut opt = Opt::from_args();
     let mut conv = Converter::init(&opt.image_path)?;
     conv.convert(opt.pallete)?;
-    let out = conv.output()?;
+    let o = conv.output();
     std::fs::write(
         match opt.output_path {
             Some(path) => path,
@@ -212,17 +189,14 @@ fn main_error_wrapper() -> Result<(), Box<dyn std::error::Error>> {
                 opt.image_path
             }
         },
-        out,
+        o,
     )?;
     Ok(())
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    match main_error_wrapper() {
-        Ok(_) => std::process::exit(0),
-        Err(err) => {
-            println!("c2bpp has encountered an error: {:?}", err);
-            std::process::exit(1)
-        }
+fn main() {
+    if let Err(err) = main_error_wrapper() {
+        eprintln!("c2bpp has encountered an error: {:?}", err);
+        std::process::exit(1)
     }
 }
